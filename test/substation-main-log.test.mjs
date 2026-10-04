@@ -24,7 +24,7 @@ test('groups low-voltage and rectifier battery fields from the workbook', () => 
     'lowLighting', 'lowLighting', 'lowLighting',
     'lowGeneral', 'lowGeneral', 'lowGeneral',
     'lowEmergency', 'lowEmergency', 'lowEmergency',
-    'rectifierBattery', 'rectifierBattery', 'rectifierBattery',
+    'rectifierBattery', 'rectifierBattery', 'rectifierBattery', 'rectifierBattery',
   ]);
 });
 

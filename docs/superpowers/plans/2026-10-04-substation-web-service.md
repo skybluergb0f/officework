@@ -65,8 +65,9 @@
 - `write_workbook_record(path, date, record, backup_dir)` writes mapped values only, with per-file serialization, timestamped backup, temporary output, reopen verification, and atomic replacement.
 - `WORKBOOK_FIELD_MAP` maps every supported observation, operator, note, meter and monthly-close field to a concrete worksheet cell.
 
-- [ ] Write `test_resolves_monthly_workbook`, `test_read_import_does_not_modify_source`, and `test_projection_preserves_unmapped_cells_and_formulas`; run them against a generated minimal workbook and confirm the expected failures.
-- [ ] Inspect NAS originals read-only to finalize cell coordinates and identify formulas, merged cells, styles, and unsupported workbook features. Implement explicit date-to-sheet and UI-field-to-cell mappings; daily meter 9/10 have no matching source cells and must be reported as SQLite-only values.
+- [x] Begin workbook tests using only the September and October files inside project `data/`; verify month-path resolution, 31 daily sheets, retained printer-settings parts, invalid-date rejection, and unchanged SHA-256 after inspection. No NAS original is an input to these tests.
+- [ ] Add write tests that copy the `data/` workbook into a temporary test directory, then verify `test_read_import_does_not_modify_source` and `test_projection_preserves_unmapped_cells_and_formulas` against the temporary copy.
+- [ ] Inspect the `data/` copies read-only to finalize cell coordinates and identify formulas, merged cells, styles, and unsupported workbook features. Implement explicit date-to-sheet and UI-field-to-cell mappings; daily meter 9/10 have no matching source cells and must be reported as SQLite-only values.
 - [ ] Implement reads with openpyxl in read-only mode and writes by patching only the target cells in their worksheet XML inside the OOXML ZIP. Add backup/temporary/reopen validation/atomic replace. Never open/save the live source as part of a GET/import.
 - [ ] Run `python3 -m unittest server.tests.test_workbook`; expected: tests pass on generated workbooks, all non-target ZIP parts remain byte-identical, and all printer-setting binaries survive. Separately compare a disposable copy of each 2026 source month before using live paths.
 

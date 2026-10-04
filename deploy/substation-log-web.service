@@ -1,0 +1,22 @@
+[Unit]
+Description=Substation log web service
+After=network-online.target remote-fs.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=substation
+Group=substation
+WorkingDirectory=/opt/substation-log-web
+EnvironmentFile=/etc/substation-log-web.env
+ExecStart=/opt/substation-log-web/.venv/bin/uvicorn server.app:app --host 127.0.0.1 --port 18790 --workers 1
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/opt/substation-log-web/data /opt/substation-log-web/backups
+
+[Install]
+WantedBy=multi-user.target

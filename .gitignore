@@ -5,6 +5,12 @@ node_modules/
 data/
 backups/
 logs/
+.venv/
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
 *.xlsx
 *.xls
 *.xlsm

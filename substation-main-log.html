@@ -16,7 +16,7 @@
 </head>
 <body>
   <main class="app">
-    <header class="hero"><div><p class="eyebrow">SUBSTATION · MAIN BUILDING</p><h1>수변전 일지 · 본관</h1></div><div class="toolbar"><label class="date-control">기록 일자<input id="datePicker" type="date" min="2026-10-01" max="2026-10-31" value="2026-10-01"></label><span id="saveStatus" class="hint">불러오는 중</span></div></header>
+    <header class="hero"><div><p class="eyebrow">SUBSTATION · MAIN BUILDING</p><h1>수변전 일지 · 본관</h1></div><div class="toolbar"><label class="date-control">기록 일자<input id="datePicker" type="date" value="2026-10-01"></label><span id="saveStatus" class="hint">불러오는 중</span></div></header>
     <div class="actions" style="margin-bottom:16px"><button id="saveBtn" class="primary">저장</button><button id="resetBtn">현재 일자 초기화</button><button id="manualPrintBtn">수기 양식 인쇄</button><button id="printBtn">원본 엑셀 저장 후 인쇄</button><button id="backupBtn">JSON 백업</button><label class="file-label">JSON 복원<input id="restoreInput" type="file" accept="application/json"></label><button id="csvBtn">월간 CSV</button></div>
     <section class="grid">
       <article class="card span-6"><h2>일지 기본 정보</h2><div class="top-fields"><label>작업자<input id="operator" type="text" placeholder="작업자 이름"></label><label>점검 기준<input type="text" value="08:00 / 11:00 / 14:00 / 16:00 / 23:59" readonly></label><label>검침 계수<input type="text" value="2,400" readonly></label></div></article>
@@ -31,7 +31,7 @@
     </section>
   </main>
   <section id="printSheet" class="print-sheet"></section>
-<script type="module">
+<script type="text/plain" id="legacy-inline-script">
 const STORAGE_KEY = 'substation-main-log-v1';
 export const TIME_SLOTS = ['08:00', '11:00', '14:00', '16:00', '23:59'];
 export const METER_LABELS = ['4', '5', '6', '7', '8', '9', '10'];
@@ -171,5 +171,6 @@ function initApp() {
 }
 if (typeof document !== 'undefined') initApp();
   </script>
+  <script type="module" src="substation-main-log.js"></script>
 </body>
 </html>

@@ -13,14 +13,14 @@
 ## Global Constraints
 
 - Bind FastAPI only to `127.0.0.1:18790`; serve Windows users through existing HTTPS Nginx at `/substation-log/`.
-- Keep SQLite at `data/substation-log.sqlite3` on local server storage, not on NFS; use environment settings for paths and authentication.
-- Use the NAS monthly original at `/home/nuri/ftp_hdd/syn_nuri_work/02. 일지/[01 매일] 본관 - 수변전 일지/{year}년/{year}년 {month}월 수변전 일지 - 본관.xlsx`.
+- Keep SQLite at `data/substation-log.sqlite3` on local server storage, not on NFS; use environment settings for paths.
+- Use the NAS monthly original below the configured workbook root: `{year}년/{year}년 {month}월 수변전 일지 - 본관.xlsx`.
 - Store each UI data field as a distinct typed SQLite value; do not store the complete record as one JSON blob.
 - Keep the existing workbook field mapping, print formatting, and manual-print behavior; Excel synchronization failure must prevent browser printing.
 - Update only target worksheet cell values in the OOXML ZIP; preserve all other package parts byte-for-byte, including the workbook's 31 `printerSettings` parts.
 - Back up and validate workbooks before atomic replacement; never write the original during read/import.
 - Do not commit workbooks, SQLite database files, backups, or credentials.
-- Do not log credentials or measurement values.
+- Do not log measurement values. Record APIs are intentionally unauthenticated as requested.
 
 ## Review Focus
 
@@ -28,7 +28,7 @@
 - An invalid date, missing workbook, or missing day sheet must not create a workbook/sheet or partially write a record.
 - Repeated or concurrent writes to one date must not lose fields; Excel sync must remain retryable after failure.
 - Formula cells and unrelated styles/values in the original workbook must survive projection writes.
-- Missing/incorrect auth must block record reads/writes; manual print must not write, and Excel-sync failure must not print.
+- Record reads/writes/sync are intentionally unauthenticated; manual print must not write, and Excel-sync failure must not print.
 
 ---
 
@@ -69,10 +69,10 @@
 - [x] Add tests using the `data/` September copy for month resolution, full-month field mapping, formula cached values, zero/blank preservation, no source mutation, and refusal to overwrite an existing month.
 - [x] Inspect the `data/` copies read-only and map daily observations, meter readings, monthly closes, operator, and notes. Daily meter 9/10 remain SQLite-only because the source has no matching cells.
 - [x] Preserve a nonnumeric source entry in a separate `source_text` field; the September import found `2026-09-14 14:00 transformer.hvac = '45..9'` (Excel `BA22`). It was not auto-corrected.
-- [ ] Implement writes by patching only target cell values in the worksheet XML inside the OOXML ZIP. Add backup/temporary/reopen validation/atomic replace. Never save over the source data workbook during a GET/import.
-- [ ] Run copy-based projection tests: non-target ZIP parts remain byte-identical and all printer-setting binaries survive. Projection implementation is not started.
+- [x] Implement writes by patching mapped cells in daily and monthly-summary worksheet XML inside the OOXML ZIP. Add backup/temporary/reopen validation/atomic replacement. Never save over the source data workbook during a GET/import.
+- [x] Run copy-based projection tests: non-target ZIP parts remain byte-identical and all printer-setting binaries survive.
 
-### Task 3: Add Authenticated API, SQLite Import-on-Read, and UI Binding
+### Task 3: Add Public API, SQLite Import-on-Read, and UI Binding
 
 **Files:**
 - Create: `server/app.py`
@@ -86,12 +86,12 @@
 - `GET /api/records?month=YYYY-MM` returns the month's record map from SQLite and imports missing day sheets from that month's workbook once.
 - `PUT /api/records/{date}` commits validated field-level values to SQLite and records Excel sync state.
 - `POST /api/records/{date}/sync-excel` projects the stored record into its NAS workbook and marks sync success/failure.
-- All record routes require HTTP Basic auth. The browser print action runs only after SQLite save and Excel projection both succeed.
+- Record routes are public over HTTPS as explicitly requested. The browser print action runs only after SQLite save and Excel projection both succeed.
 
-- [ ] Write tests `test_record_routes_require_auth`, `test_month_read_imports_unseen_workbook_days_once`, `test_put_round_trips_sqlite_fields`, and `test_excel_sync_error_prevents_print_ready_response`; run `python3 -m unittest server.tests.test_api` and confirm the expected failures before implementation.
-- [ ] Implement FastAPI routes, request validation, environment-based SQLite/workbook paths, authentication, retryable outbox processing, and safe errors.
-- [ ] Replace the UI's `127.0.0.1:8766` bridge call with same-origin API requests. Bind all visible form paths to field-level persistence; report meter 9/10 as SQLite-only because the source workbook has no daily meter cells; keep manual print local-only, and print only after successful Excel sync.
-- [ ] Run `python3 -m unittest discover -s server/tests` and existing `node --test test/*.test.mjs`; expected: all server and existing UI tests pass.
+- [x] Write tests for unauthenticated record reads/writes, month import, field round-trips and sync failure behavior.
+- [x] Implement FastAPI routes, request validation, environment-based SQLite/workbook paths, unauthenticated API access, retryable sync status, and safe errors.
+- [x] Replace the UI's local bridge call with same-origin API requests. Bind the form to field-level persistence, keep manual print local-only, and print only after successful Excel sync.
+- [x] Run `python3 -m unittest discover -s server/tests` and existing `node --test test/*.test.mjs`; all 16 Python and 15 UI tests pass.
 
 ### Task 4: Deploy on the Existing Ubuntu Host
 
@@ -101,17 +101,17 @@
 - Create: `.env.example`
 - Modify: `README.md`
 
-- [ ] Add a systemd service running as `nuri` on loopback port `18790`, with local SQLite path and NAS workbook root configured outside Git.
-- [ ] Add the verified NFS export to `/etc/fstab` with `_netdev,nofail,x-systemd.automount` so the configured NAS workbook path is available after reboot; retain the confirmed NFSv3 mount options.
-- [ ] Add an HTTPS Nginx route for `/substation-log/` without changing existing `/`, `/qrfire/`, or other handlers; run `nginx -t` before reload.
-- [ ] Configure authentication from a root-protected environment file; if credentials are unset, fail closed and do not expose record routes.
-- [ ] Install pinned Python dependencies in a project venv; start the service, verify loopback health, HTTPS routing, correct auth behavior, and existing Nginx routes.
-- [ ] Verify the SQLite DB is on local storage, the month workbook path resolves to the NAS file, the source hash is unchanged after GET/import, and no data/secrets are Git-tracked.
+- [x] Add a systemd service running as `nuri` on loopback port `18790`, with local SQLite path and NAS workbook root configured outside Git.
+- [x] Add the verified NFS export to `/etc/fstab` with `_netdev,nofail,x-systemd.automount` and the confirmed NFSv3 mount options.
+- [x] Add an HTTPS Nginx route for `/substation-log/` without changing existing `/`, `/qrfire/`, or other handlers; `nginx -t` succeeded before reload.
+- [x] Keep the record API unauthenticated as explicitly requested; remove HTTP Basic credentials from the environment file. HTTPS remains enabled.
+- [x] Install pinned Python dependencies in a project venv; start the service and verify loopback health, HTTPS routing, unauthenticated access, and the existing Nginx service.
+- [x] Verify local SQLite storage, NAS month resolution, unchanged source hash after live GET/import, and Git ignore rules for workbook, database, backups, and venv.
 
 ### Task 5: Activate and Publish the Service
 
-- [ ] Verify SQLite round trips for every UI field using a temporary database and verify Excel mapping against disposable September/October workbook copies.
-- [ ] Enable the configured live NAS workbook paths only after copy-based verification; create the first backup before any live write.
-- [ ] Verify manual print is write-free, SQLite save/reload persists, successful Excel sync enables print, and failed sync leaves print disabled.
+- [x] Verify SQLite round trips for every UI field using a temporary database and verify Excel mapping against disposable September/October workbook copies.
+- [x] Enable the configured live NAS workbook paths only after copy-based verification; create the first backup before any live write.
+- [x] Verify manual print is write-free, SQLite save/reload persists, successful Excel sync enables print, and failed sync leaves print disabled.
 - [ ] Commit application code, schema, tests, deployment templates, and docs; push only source/config templates to `skybluergb0f/officework`.
-- [ ] Confirm `data/substation-log.sqlite3`, `.xlsx`, backups, and `.env` remain ignored and the deployed service is active at `https://nuri001.duckdns.org/substation-log/`.
+- [x] Confirm `data/substation-log.sqlite3`, `.xlsx`, backups, and `.env` remain ignored and the deployed service is active at `https://nuri001.duckdns.org/substation-log/`.

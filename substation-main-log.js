@@ -1,5 +1,9 @@
 export const TIME_SLOTS = ['08:00', '11:00', '14:00', '16:00', '23:59'];
 export const METER_LABELS = ['4', '5', '6', '7', '8', '9', '10'];
+export function getApiBase(pathname) {
+  const normalizedPath = pathname.endsWith('/') ? pathname : `${pathname}/`;
+  return normalizedPath.startsWith('/substation-log/') ? '/substation-log/api' : '/api';
+}
 export const MONTH_CLOSE_LABELS = {
   substation: ['9', '10', '11', '12', '13', '14', '15'],
   industrial: ['4', '5', '6', '7', '8', '10', '11'],
@@ -111,7 +115,7 @@ function initApp() {
     document.querySelectorAll('input[data-path^="obs|"]').forEach((el) => { const parts = el.dataset.path.split('|'); const locked = parts[2] !== 'chiller' && isInspectionTimeLocked(record, parts[1]); el.disabled = locked; el.closest('tr')?.classList.toggle('time-locked', locked); });
   }
   function calculateAndRender() { const summary = calculateMeterSummary(current().meters); summary.usages.forEach((item, i) => { const out = $(`meter-u-${i}`); out.textContent = item.warning ? '확인 필요' : fmt(item.value); out.className = item.status; }); $('meterTotal').textContent = fmt(summary.total); $('warning').textContent = summary.warnings.join(' '); }
-  const api = '/substation-log/api';
+  const api = getApiBase(window.location.pathname);
   async function persistRecord(show = false) {
     readForm(); const record = structuredClone(current()); $('saveStatus').textContent = '서버 저장 중…';
     state.saveChain = state.saveChain.catch(() => {}).then(async () => { const response = await fetch(`${api}/records/${encodeURIComponent(record.date)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(record) }); if (!response.ok) throw new Error(`서버 저장 실패 (${response.status})`); });
@@ -121,7 +125,7 @@ function initApp() {
   function save(show = true) { clearTimeout(state.saveTimer); state.saveTimer = setTimeout(() => persistRecord(show).catch(() => {}), show ? 0 : 700); }
   async function flushSave() { clearTimeout(state.saveTimer); await persistRecord(false); await state.saveChain; }
   function bindInputs() { document.querySelectorAll('input,textarea').forEach((el) => { if (!el.dataset.bound) { el.addEventListener('input', () => { if (el.dataset.timeEdit) return; readForm(); calculateAndRender(); updateTimeLocks(); save(false); }); if (el.dataset.timeEdit) el.addEventListener('change', () => { current().timeEdit[el.dataset.timeEdit] = el.checked; updateTimeLocks(); save(false); }); el.dataset.bound = '1'; } }); }
-  async function load() { try { const response = await fetch(`${api}/records?month=${encodeURIComponent(state.month)}`); if (!response.ok) throw new Error(`기록 조회 실패 (${response.status})`); const result = await response.json(); state.records = result.records || {}; render(); $('saveStatus').textContent = '서버 기록 불러옴'; } catch (error) { render(); $('saveStatus').textContent = '서버 연결 실패'; alert(`${error.message}\n로그인 정보와 서비스 연결을 확인해 주세요.`); } }
+  async function load() { try { const response = await fetch(`${api}/records?month=${encodeURIComponent(state.month)}`); if (!response.ok) throw new Error(`기록 조회 실패 (${response.status})`); const result = await response.json(); state.records = result.records || {}; render(); $('saveStatus').textContent = '서버 기록 불러옴'; } catch (error) { render(); $('saveStatus').textContent = '서버 연결 실패'; alert(`${error.message}\n서비스 주소와 API 경로를 확인해 주세요.`); } }
   async function saveWorkbookAndPrint() {
     readForm(); $('saveStatus').textContent = '서버 저장 및 원본 엑셀 동기화 중…';
     try {

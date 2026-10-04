@@ -12,7 +12,13 @@ import {
   createEmptyRecord,
   serializeRecords,
   parseRecords,
+  getApiBase,
 } from '../substation-main-log.js';
+
+test('uses an API path that matches direct-port and HTTPS proxy entry URLs', () => {
+  assert.equal(getApiBase('/'), '/api');
+  assert.equal(getApiBase('/substation-log/'), '/substation-log/api');
+});
 
 test('keeps chiller fields in a separate metric group', () => {
   assert.deepEqual(METRIC_GROUPS.chiller.fields.map((field) => field[0]), ['chillerKw', 'chillerA', 'chiller2Kw', 'chiller2A', 'capacitorKw', 'capacitorA']);

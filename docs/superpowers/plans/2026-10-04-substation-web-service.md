@@ -4,7 +4,7 @@
 
 **Goal:** Deliver the existing substation log as a Windows-accessible HTTPS service with per-field SQLite persistence and synchronized writes to the NAS Excel original before print.
 
-**Architecture:** FastAPI serves the existing same-origin UI and JSON API on `127.0.0.1:18790`, behind HTTPS Nginx at `/substation-log/`. SQLite on the server's local disk stores each observation, meter and monthly-close field separately. The existing monthly workbook on the Synology NFS share is imported into SQLite on first read and remains the Excel output projection for the explicit “원본 엑셀 저장 후 인쇄” action.
+**Architecture:** FastAPI serves the existing same-origin UI and JSON API on `0.0.0.0:18790`; HTTPS Nginx at `/substation-log/` remains available. Direct port access is plain HTTP and Internet reachability depends on upstream router/firewall forwarding. SQLite on the server's local disk stores each observation, meter and monthly-close field separately. The existing monthly workbook on the Synology NFS share is imported into SQLite on first read and remains the Excel output projection for the explicit “원본 엑셀 저장 후 인쇄” action.
 
 **Tech Stack:** Python 3.12, FastAPI, Uvicorn, Python `sqlite3`, read-only openpyxl, ZIP/XML package editing, systemd, Nginx, existing HTML/CSS/JavaScript.
 
@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Bind FastAPI only to `127.0.0.1:18790`; serve Windows users through existing HTTPS Nginx at `/substation-log/`.
+- Bind FastAPI to `0.0.0.0:18790` for direct network access; keep the existing HTTPS Nginx route. Direct port traffic is unencrypted HTTP.
 - Keep SQLite at `data/substation-log.sqlite3` on local server storage, not on NFS; use environment settings for paths.
 - Use the NAS monthly original below the configured workbook root: `{year}년/{year}년 {month}월 수변전 일지 - 본관.xlsx`.
 - Store each UI data field as a distinct typed SQLite value; do not store the complete record as one JSON blob.
@@ -101,7 +101,7 @@
 - Create: `.env.example`
 - Modify: `README.md`
 
-- [x] Add a systemd service running as `nuri` on loopback port `18790`, with local SQLite path and NAS workbook root configured outside Git.
+- [x] Add a systemd service running as `nuri` on all interfaces at port `18790`, with local SQLite path and NAS workbook root configured outside Git.
 - [x] Add the verified NFS export to `/etc/fstab` with `_netdev,nofail,x-systemd.automount` and the confirmed NFSv3 mount options.
 - [x] Add an HTTPS Nginx route for `/substation-log/` without changing existing `/`, `/qrfire/`, or other handlers; `nginx -t` succeeded before reload.
 - [x] Keep the record API unauthenticated as explicitly requested; remove HTTP Basic credentials from the environment file. HTTPS remains enabled.

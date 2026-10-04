@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+node_modules/
+data/
+backups/
+logs/
+*.xlsx
+*.xls
+*.xlsm
+*.bak
+*.tmp

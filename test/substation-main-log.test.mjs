@@ -34,8 +34,9 @@ test('groups low-voltage and rectifier battery fields from the workbook', () => 
   ]);
 });
 
-test('includes the transformer auxiliary fields from the workbook', () => {
-  assert.deepEqual(METRIC_GROUPS.transformer.fields.map((field) => field[0]), ['trTemp', 'lighting', 'general', 'hvac', 'emergency', 'ups']);
+test('removes the standalone transformer temperature field but keeps TR1/TR2 readings', () => {
+  assert.deepEqual(METRIC_GROUPS.transformer.fields.map((field) => field[0]), ['lighting', 'general', 'hvac', 'emergency', 'ups']);
+  assert.deepEqual(METRIC_GROUPS.main.fields.filter((field) => field[2] === 'trTemp').map((field) => field[0]), ['tr1', 'tr2']);
 });
 
 test('includes both monthly closing meter groups from the workbook', () => {

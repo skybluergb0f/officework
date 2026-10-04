@@ -262,10 +262,6 @@ def _read_day_record(book, cached_book, summary, cached_summary, year: int, mont
                     source_row = row + 20
                 address = f"{column}{source_row}"
                 observations[slot][group][field] = _literal(sheet, address, cached_sheet)
-        # TR1/TR2 are the source's two transformer temperature readings. The
-        # separate transformer auxiliary block has five columns, named below.
-        observations[slot]["transformer"]["trTemp"] = None
-
     meter_values = {kind: [None] * len(METER_LABELS) for kind in ("current", "previous")}
     for kind, row in (("current", 38), ("previous", 39)):
         for index, label in enumerate(METER_LABELS):

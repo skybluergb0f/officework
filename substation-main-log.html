@@ -23,7 +23,7 @@
       <article class="card span-6"><h2>계량기 사용량 요약</h2><div class="summary"><div class="metric"><small>금일 사용량 합계</small><strong id="meterTotal">입력 대기</strong></div><div class="metric"><small>단위</small><strong>kWh</strong></div></div><div id="warning" class="warning-box"></div></article>
       <article class="card span-12"><h2>특고압 22.9kV MAIN / 변압기</h2><p class="hint">엑셀의 5개 점검 시각을 기준으로 입력합니다. TR1/TR2는 온도(℃)입니다.</p><div id="group-main"></div></article>
       <article class="card span-12"><h2>고압 3.3kV MAIN VCB / UPS·동력</h2><div id="group-vcb"></div></article>
-      <article class="card span-12"><h2>변압기</h2><p class="hint">엑셀 원본의 TR온도, 전등/전열, 일반동력, 냉/난방, 비상동력, UPS 항목입니다.</p><div id="group-transformer"></div></article>
+      <article class="card span-12"><h2>변압기</h2><p class="hint">엑셀 원본의 전등/전열, 일반동력, 냉/난방, 비상동력, UPS 항목입니다.</p><div id="group-transformer"></div></article>
       <article class="card span-12"><h2>냉동기</h2><div id="group-chiller"></div></article>
       <article class="card span-12"><h2>저압·정류기반·축전지</h2><div id="group-secondary"></div></article>
       <article class="card span-12"><h2>계량기 검침</h2><p class="hint">금일·전일 검침량을 입력하면 (금일 - 전일) × 2,400으로 사용량을 계산합니다. 계량기 9·10도 입력할 수 있습니다.</p><div class="table-scroll"><table class="meter-table"><thead><tr><th>구분</th><th>금일 검침량</th><th>전일 검침량</th><th>사용량</th></tr></thead><tbody id="meterRows"></tbody></table></div><div class="monthly-close-grid"><section><h3>* 월 마감 (수변전)</h3><div id="monthlyCloseSubstation" class="monthly-close-row"></div></section><section><h3>* 월 마감 (산업용)</h3><div id="monthlyCloseIndustrial" class="monthly-close-row"></div></section></div></article>
@@ -46,7 +46,7 @@ export function calculateMonthlyDifference(current, previous) {
 export const METRIC_GROUPS = {
   main: { title: '22.9kV MAIN / 변압기', fields: [['kv', '전압 KV', 'main'], ['a1', 'R상 A', 'main'], ['a2', 'S상 A', 'main'], ['a3', 'T상 A', 'main'], ['pf', 'PF', 'main'], ['kw', 'KW', 'main'], ['hz', 'HZ', 'main'], ['tr1', 'TR1 온도', 'trTemp'], ['tr2', 'TR2 온도', 'trTemp']] },
   vcb: { title: '3.3kV MAIN VCB / 동력', fields: [['kv', '전압 KV', 'vcb'], ['kw', 'KW', 'vcb'], ['pf', 'PF', 'vcb'], ['a', '전류 A', 'vcb'], ['upsKw', 'UPS.B KW', 'ups'], ['upsA', 'UPS.B A', 'ups'], ['emergencyKw', '비상동력 KW', 'emergency'], ['emergencyA', '비상동력 A', 'emergency'], ['hvacKw', '냉난방 KW', 'hvac'], ['hvacA', '냉난방 A', 'hvac'], ['generalKw', '일반동력 KW', 'general'], ['generalA', '일반동력 A', 'general'], ['lightingKw', '조명 KW', 'lighting'], ['lightingA', '조명 A', 'lighting']] },
-  transformer: { title: '변압기', fields: [['trTemp', 'TR온도(℃)'], ['lighting', '전등/전열'], ['general', '일반동력'], ['hvac', '냉/난방'], ['emergency', '비상동력'], ['ups', 'UPS']] },
+  transformer: { title: '변압기', fields: [['lighting', '전등/전열'], ['general', '일반동력'], ['hvac', '냉/난방'], ['emergency', '비상동력'], ['ups', 'UPS']] },
   chiller: { title: '냉동기', fields: [['chillerKw', '냉동기1 KW'], ['chillerA', '냉동기1 A'], ['chiller2Kw', '냉동기2 KW'], ['chiller2A', '냉동기2 A'], ['capacitorKw', '콘덴서 KW'], ['capacitorA', '콘덴서 A']] },
   secondary: { title: '저압·정류기반·축전지', fields: [['lowLightingV', '조명 V', 'lowLighting'], ['lowLightingKw', '조명 KW', 'lowLighting'], ['lowLightingA', '조명 A', 'lowLighting'], ['lowGeneralV', '일반동력 V', 'lowGeneral'], ['lowGeneralKw', '일반동력 KW', 'lowGeneral'], ['lowGeneralA', '일반동력 A', 'lowGeneral'], ['lowEmergencyV', '비상동력 V', 'lowEmergency'], ['lowEmergencyKw', '비상동력 KW', 'lowEmergency'], ['lowEmergencyA', '비상동력 A', 'lowEmergency'], ['rectifierV', '정류기 V', 'rectifierBattery'], ['rectifierA', '정류기 A', 'rectifierBattery'], ['batteryV', '축전지 V', 'rectifierBattery'], ['batteryA', '축전지 A', 'rectifierBattery']] },
 };
@@ -171,6 +171,6 @@ function initApp() {
 }
 if (typeof document !== 'undefined') initApp();
   </script>
-  <script type="module" src="substation-main-log.js?v=direct-port-api-path"></script>
+  <script type="module" src="substation-main-log.js?v=remove-transformer-temperature"></script>
 </body>
 </html>

@@ -60,6 +60,7 @@ class SeptemberImportTests(unittest.TestCase):
         finally:
             source.close()
         saved = load_record(self.db, "2026-09-01")
+        self.assertNotIn("trTemp", saved["observations"]["08:00"]["transformer"])
         for (time, group, field), value in expected.items():
             with self.subTest(time=time, group=group, field=field):
                 self.assertEqual(saved["observations"][time][group][field], value)

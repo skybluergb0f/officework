@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS inspection_values (
   group_key TEXT NOT NULL,
   field_key TEXT NOT NULL,
   value REAL,
+  source_text TEXT,
   PRIMARY KEY(record_date, time_slot, group_key, field_key)
 );
 CREATE TABLE IF NOT EXISTS record_time_controls (
@@ -24,6 +25,7 @@ CREATE TABLE IF NOT EXISTS meter_values (
   meter_label TEXT NOT NULL,
   reading_kind TEXT NOT NULL CHECK(reading_kind IN ('current','previous')),
   value REAL,
+  source_text TEXT,
   PRIMARY KEY(record_date, meter_label, reading_kind)
 );
 CREATE TABLE IF NOT EXISTS monthly_close_values (
@@ -32,6 +34,7 @@ CREATE TABLE IF NOT EXISTS monthly_close_values (
   meter_label TEXT NOT NULL,
   reading_kind TEXT NOT NULL CHECK(reading_kind IN ('current','previous')),
   value REAL,
+  source_text TEXT,
   PRIMARY KEY(record_date, close_kind, meter_label, reading_kind)
 );
 CREATE TABLE IF NOT EXISTS workbook_sync (

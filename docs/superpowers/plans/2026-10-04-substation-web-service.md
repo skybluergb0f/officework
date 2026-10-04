@@ -50,26 +50,27 @@
 - [x] Implement normalized tables: `daily_records`, `inspection_values`, `record_time_controls`, `meter_values`, `monthly_close_values`, and `workbook_sync`; map every UI key to a stable `(group_key, field_key)` pair.
 - [x] Run `python3 -m unittest server.tests.test_db`; expected: all named tests pass and database initialization is repeatable.
 - [x] Ignore `*.sqlite3`, SQLite WAL/SHM files, and `data/`; verify `git check-ignore data/substation-log.sqlite3`.
-- [x] Initialize the production-path SQLite file at `data/substation-log.sqlite3` on the Ubuntu host; it is schema-only and contains no workbook data yet.
+- [x] Initialize the production-path SQLite file at `data/substation-log.sqlite3` on the Ubuntu host; the September 2026 month is now imported.
 
 ### Task 2: Import and Project SQLite Records to Monthly Excel Workbooks
 
 **Files:**
 - Create: `server/workbook.py`
 - Create: `server/tests/test_workbook.py`
-- Runtime input: NAS September and October 2026 original workbooks (read-only for initial import)
+- Runtime input: `data/2026년 9월 수변전 일지 - 본관.xlsx` and `data/2026년 10월 수변전 일지 - 본관.xlsx` project copies only for testing and import; never use the NAS originals for these checks.
 
 **Interfaces:**
 - `workbook_path_for_date(date, workbook_root)` resolves the monthly NAS workbook using the configured `{year}년` layout.
-- `read_workbook_record(path, date)` returns a browser-shaped record without creating or modifying workbook content.
+- `import_workbook_month(db, workbook_root, month)` reads the exact month file below the supplied root, maps each supported field, and inserts all days in one transaction without modifying the workbook.
 - `write_workbook_record(path, date, record, backup_dir)` writes mapped values only, with per-file serialization, timestamped backup, temporary output, reopen verification, and atomic replacement.
 - `WORKBOOK_FIELD_MAP` maps every supported observation, operator, note, meter and monthly-close field to a concrete worksheet cell.
 
 - [x] Begin workbook tests using only the September and October files inside project `data/`; verify month-path resolution, 31 daily sheets, retained printer-settings parts, invalid-date rejection, and unchanged SHA-256 after inspection. No NAS original is an input to these tests.
-- [ ] Add write tests that copy the `data/` workbook into a temporary test directory, then verify `test_read_import_does_not_modify_source` and `test_projection_preserves_unmapped_cells_and_formulas` against the temporary copy.
-- [ ] Inspect the `data/` copies read-only to finalize cell coordinates and identify formulas, merged cells, styles, and unsupported workbook features. Implement explicit date-to-sheet and UI-field-to-cell mappings; daily meter 9/10 have no matching source cells and must be reported as SQLite-only values.
-- [ ] Implement reads with openpyxl in read-only mode and writes by patching only the target cells in their worksheet XML inside the OOXML ZIP. Add backup/temporary/reopen validation/atomic replace. Never open/save the live source as part of a GET/import.
-- [ ] Run `python3 -m unittest server.tests.test_workbook`; expected: tests pass on generated workbooks, all non-target ZIP parts remain byte-identical, and all printer-setting binaries survive. Separately compare a disposable copy of each 2026 source month before using live paths.
+- [x] Add tests using the `data/` September copy for month resolution, full-month field mapping, formula cached values, zero/blank preservation, no source mutation, and refusal to overwrite an existing month.
+- [x] Inspect the `data/` copies read-only and map daily observations, meter readings, monthly closes, operator, and notes. Daily meter 9/10 remain SQLite-only because the source has no matching cells.
+- [x] Preserve a nonnumeric source entry in a separate `source_text` field; the September import found `2026-09-14 14:00 transformer.hvac = '45..9'` (Excel `BA22`). It was not auto-corrected.
+- [ ] Implement writes by patching only target cell values in the worksheet XML inside the OOXML ZIP. Add backup/temporary/reopen validation/atomic replace. Never save over the source data workbook during a GET/import.
+- [ ] Run copy-based projection tests: non-target ZIP parts remain byte-identical and all printer-setting binaries survive. Projection implementation is not started.
 
 ### Task 3: Add Authenticated API, SQLite Import-on-Read, and UI Binding
 

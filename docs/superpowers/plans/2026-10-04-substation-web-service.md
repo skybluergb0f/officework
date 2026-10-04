@@ -113,5 +113,5 @@
 - [x] Verify SQLite round trips for every UI field using a temporary database and verify Excel mapping against disposable September/October workbook copies.
 - [x] Enable the configured live NAS workbook paths only after copy-based verification; create the first backup before any live write.
 - [x] Verify manual print is write-free, SQLite save/reload persists, successful Excel sync enables print, and failed sync leaves print disabled.
-- [ ] Commit application code, schema, tests, deployment templates, and docs; push only source/config templates to `skybluergb0f/officework`.
+- [x] Commit application code, schema, tests, deployment templates, and docs; push only source/config templates to `skybluergb0f/officework`.
 - [x] Confirm `data/substation-log.sqlite3`, `.xlsx`, backups, and `.env` remain ignored and the deployed service is active at `https://nuri001.duckdns.org/substation-log/`.
